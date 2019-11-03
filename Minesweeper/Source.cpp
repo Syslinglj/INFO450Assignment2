@@ -6,36 +6,34 @@ const int CSIZE = 8;
 const int RSIZE = 8;
 void displayBoard(int gameBoard[RSIZE][CSIZE]);
 void askLocation(int& Locx, int& Locy);
-void randLocation(int& spot);
+int randLocation(int spotArray[6][2]);
 
 int main()
 {
-	int guessx = 0, guessy = 0, bombx = 1, bomby = 2;
-	int gold[5][2] = { { 1,6}, { 0,2}, { 6,6}, { 7,2}, { 6,5} };
+	int guessx = 0, guessy = 0;
+	int gold[6][2] = { { 1,6}, { 0,2}, { 6,6}, { 7,2}, { 6,5} };
 	int game[RSIZE][CSIZE] = { {5,5,5,5,5,5,5,5},{5,5,5,5,5,5,5,5},{5,5,5,5,5,5,5,5},{5,5,5,5,5,5,5,5},{5,5,5,5,5,5,5,5},{5,5,5,5,5,5,5,5},{5,5,5,5,5,5,5,5},{5,5,5,5,5,5,5,5} };
-	int attempt = 1, score = 0, remaining = 5;
+	
 	bool cont = true;
 	char input = 'Y';
+	int num1 = 0, num2 = 0;
 	while (cont == true)
 	{
-		for (int r = 0; r < 5; r++) //randomly assigns gold/bomb location
-		{
-				randLocation(gold[r][0]);
-				randLocation(gold[r][1]);
-		}
-		//randLocation(bombx);
-		//randLocation(bomby);
+		int attempt = 1, score = 0, remaining = 5;
 
-		for (int r = 0; r < 5; r++) //states gold/bomb locations for testing
+		//randomly assigns gold/bomb location
+		randLocation(gold);
+
+		/*for (int r = 0; r < 5; r++) //states gold/bomb locations for testing
 		{
-			cout << "Gold #" << r + 1 << " X:" << gold[r][0] << " Y:" << gold[r][1] << endl;
+			cout << "Gold #" << r + 1 << " X:" << gold[r][0]+1 << " Y:" << gold[r][1]+1 << endl;
 		}
-		cout << "Bomb" << " X:" << bombx << " Y:" << bomby << endl;
+		cout << "Bomb" << " X:" << gold[5][0]+1 << " Y:" << gold[5][1]+1 << endl; */
 
 		//displays board blank board to start
 		displayBoard(game);
 		cout << "******************************" << endl;
-		cout << "****  You have 5 Guesses  ****" << endl;
+		cout << "****  You have 5 Guesses  ****" << endl; 
 		cout << "****    To Find 5 Gold    ****" << endl;
 		cout << "****   Beware of 1 Bomb   ****" << endl;
 		cout << "****      Good Luck       ****" << endl;
@@ -48,27 +46,41 @@ int main()
 				game[r][c] = 0;
 			}
 		}
-
+		
 		// adds gold/bomb to gameboard
 		for (int r = 0; r < 5; r++)
 		{
-			game[gold[r][0]][gold[r][1]] = 1;
+			game[gold[r][1]][gold[r][0]] = 1;
 		}
-		game[bombx][bomby] = 2;
-		// asks for 5 guesses
+		game[gold[5][1]][gold[5][0]] = 2;
+		//displayBoard(game); //displays gold at beginning
 
+		// asks for 5 guesses
 		for (int k = 0; k < 5; k++)
 		{
-
 			guessx = 0, guessy = 0;
-			askLocation(guessx, guessy);
+			askLocation(guessy, guessx);
 			cout << "Guess # " << attempt << ": ";
 			remaining--;
+			// for guesses that have already been made on the x:y
+			if (game[guessx][guessy] == 4)
+			{
+				cout << "Oh no! You've already guessed here!" << endl;
+				k--;
+				remaining++;
+			}
 			// guess was a miss
 			if (game[guessx][guessy] == 0)
 			{
 				cout << "Oh no! You missed!" << endl;
 				game[guessx][guessy] = 4;
+			}
+			// if gold has been found there already
+			if (game[guessx][guessy] == 3)
+			{
+				cout << "Oh no! You've already found gold here!" << endl;
+				k--;
+				remaining++;
 			}
 			// guess was a gold hit'
 			if (game[guessx][guessy] == 1)
@@ -87,10 +99,14 @@ int main()
 				remaining = 0;
 			}
 			cout << "You have " << remaining << " guesses left." << endl;
+			cout << " " << endl;
 			attempt++;
+			//displayBoard(game); used for testing guessing accuracy
 		}
+		//display ending board and ask if they would like to go again
 		displayBoard(game);
 		cout << "Your score was " << score << endl;
+
 		cout << "Would you like to go again Y:N" << endl;
 		cin >> input;
 		if (input == 'Y' || input == 'y')
@@ -151,11 +167,23 @@ void askLocation(int& Locx, int& Locy)
 	Locy -= 1;
 }
 
-//generates random x and y for golds and bomb
-void randLocation(int& spot)
+//generates random x and y for gold without repeat
+int randLocation(int spotArray[6][2])
 {
+	int i;
 	srand(time(NULL));
-	spot = (rand() % 8) + 1;
+	for (i = 0; i < 6; i++)
+	{
+		spotArray[i][0] = (rand() % 8);
+		spotArray[i][1] = (rand() % 8);
+		for (int r = 0; r < i; r++)
+		{
+			if (spotArray[i][0] == spotArray[r][0] && spotArray[i][1] == spotArray[r][1])
+			{
+				spotArray[i][0] = (rand() % 8);
+				spotArray[i][1] = (rand() % 8);
+			}
+		}
+	}
+	return 0;
 }
-
-//checks board for points and bombs
